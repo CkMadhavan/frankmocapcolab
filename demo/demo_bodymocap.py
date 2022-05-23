@@ -66,7 +66,7 @@ def run_body_mocap(args, body_bbox_detector, body_mocap, visualizer):
                     cv2.imwrite(image_path, img_original_bgr)
 
         elif input_type == 'webcam':    
-            _, img_original_bgr = input_data.read()
+            img_original_bgr = input_data
 
             if video_frame < cur_frame:
                 video_frame += 1
