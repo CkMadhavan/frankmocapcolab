@@ -83,36 +83,7 @@ def __img_seq_setup(args):
     mocap_out_dir = osp.join(args.out_dir, "mocap")
     gnu.build_dir(mocap_out_dir)
 
-
-def setup_input(args):
-    """
-    Input type can be 
-        an image file
-        a video file
-        a folder with image files
-        a folder with bbox (json) files
-        "webcam"
-    
-    """
-    image_exts = ('jpg', 'png', 'jpeg', 'bmp')
-    video_exts = ('mp4', 'avi', 'mov')
-
-    # get type of input 
-    input_type = __get_input_type(args)
-
-    if input_type =='video':
-        cap = cv2.VideoCapture(args.input_path)
-        assert cap.isOpened(), f"Failed in opening video: {args.input_path}"
-        __video_setup(args)
-        return input_type, cap
-
-    elif input_type =='webcam':
-
-        from IPython.display import display, Javascript
-        from google.colab.output import eval_js
-        from base64 import b64decode
-
-        def take_photo(filename='photo.jpg', quality=0.8):
+def take_photo(filename='photo.jpg', quality=0.8):
             js = Javascript('''
                    async function takePhoto(quality) {
             const div = document.createElement('div');
@@ -151,6 +122,35 @@ def setup_input(args):
            with open(filename, 'wb') as f:
                f.write(binary)
            return filename
+
+
+def setup_input(args):
+    """
+    Input type can be 
+        an image file
+        a video file
+        a folder with image files
+        a folder with bbox (json) files
+        "webcam"
+    
+    """
+    image_exts = ('jpg', 'png', 'jpeg', 'bmp')
+    video_exts = ('mp4', 'avi', 'mov')
+
+    # get type of input 
+    input_type = __get_input_type(args)
+
+    if input_type =='video':
+        cap = cv2.VideoCapture(args.input_path)
+        assert cap.isOpened(), f"Failed in opening video: {args.input_path}"
+        __video_setup(args)
+        return input_type, cap
+
+    elif input_type =='webcam':
+
+        from IPython.display import display, Javascript
+        from google.colab.output import eval_js
+        from base64 import b64decode
 
         try:
             filename = take_photo()
