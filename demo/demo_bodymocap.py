@@ -12,6 +12,7 @@ import json
 import pickle
 from datetime import datetime
 from pyngrok import ngrok
+import base64
 
 from demo.demo_options import DemoOptions
 from bodymocap.body_mocap_api import BodyMocap
@@ -108,9 +109,12 @@ def run_body_mocap(args, body_bbox_detector, body_mocap, visualizer):
                 data += conn.recv(4096)
             frame_data = data[:msg_size]
             data = data[msg_size:]
-    
 
-            img_original_bgr=pickle.loads(frame_data)
+            #img_original_bgr=pickle.loads(frame_data)
+
+            img = base64.b64decode(frame_data)
+            npimg = np.fromstring(img, dtype=np.uint8)
+            img_original_bgr = cv2.imdecode(npimg, 1)
 
             if video_frame < cur_frame:
                 video_frame += 1
