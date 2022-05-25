@@ -11,6 +11,7 @@ import argparse
 import json
 import pickle
 from datetime import datetime
+from pyngrok import ngrok
 
 from demo.demo_options import DemoOptions
 from bodymocap.body_mocap_api import BodyMocap
@@ -19,8 +20,19 @@ import mocap_utils.demo_utils as demo_utils
 import mocap_utils.general_utils as gnu
 from mocap_utils.timer import Timer
 
+import socket
+import sys
+import cv2
+import pickle
+import numpy as np
+import struct
+
 import renderer.image_utils as imu
 from renderer.viewer2D import ImShow
+
+tunnels = ngrok.get_tunnels()
+for ngrok_tunnel in tunnels:
+    ngrok.disconnect(ngrok_tunnel.public_url)
 
 def run_body_mocap(args, body_bbox_detector, body_mocap, visualizer):
     #Setup input data to handle different types of inputs
@@ -29,6 +41,25 @@ def run_body_mocap(args, body_bbox_detector, body_mocap, visualizer):
     cur_frame = args.start_frame
     video_frame = 0
     timer = Timer()
+
+    HOST= ''
+    PORT=80
+
+    s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    print('Socket created')
+
+    s.bind((HOST,PORT))
+    print('Socket bind complete')
+    s.listen(10)
+    print('Socket now listening')
+
+    public_url = ngrok.connect(PORT,"tcp")
+    print(public_url)
+    conn,addr=s.accept()
+
+    data = b""
+    payload_size = struct.calcsize("L")
+
     while True:
         timer.tic()
         # load data
@@ -66,7 +97,20 @@ def run_body_mocap(args, body_bbox_detector, body_mocap, visualizer):
                     cv2.imwrite(image_path, img_original_bgr)
 
         elif input_type == 'webcam':    
-            img_original_bgr = input_data
+            #img_original_bgr = input_data
+
+            while len(data) < payload_size:
+                data += conn.recv(4096)
+            packed_msg_size = data[:payload_size]
+            data = data[payload_size:]
+            msg_size = struct.unpack("L", packed_msg_size)[0]
+            while len(data) < msg_size:
+                data += conn.recv(4096)
+            frame_data = data[:msg_size]
+            data = data[msg_size:]
+    
+
+            img_original_bgr=pickle.loads(frame_data)
 
             if video_frame < cur_frame:
                 video_frame += 1
