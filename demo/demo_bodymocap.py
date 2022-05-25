@@ -177,10 +177,10 @@ def run_body_mocap(args, body_bbox_detector, body_mocap, visualizer):
 
         # save result image
         if args.out_dir is not None:
-            print(type(res_image))
-            encoded, buffer = cv2.imencode('.jpg', res_image)
-            data = base64.b64encode(buffer)
-            conn.sendall(struct.pack("L", len(data))+data)
+            print(type(res_img))
+            encoded, buffer = cv2.imencode('.jpg', res_img)
+            datatosend = base64.b64encode(buffer)
+            conn.sendall(struct.pack("L", len(datatosend))+datatosend)
             demo_utils.save_res_img(args.out_dir, image_path, res_img)
 
         # save predictions to pkl
